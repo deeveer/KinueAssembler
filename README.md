@@ -60,3 +60,109 @@ chmod +x run.sh
 - 未定義的符號 (Undefined symbol)
 - 定址位移超出範圍 (Displacement out of range)
 - 無法識別的助記碼 (Invalid opcode)
+
+## SIC/XE Linking Loader 使用流程
+
+本專案目前也提供一個獨立的 SIC/XE Linking Loader。完整流程是：
+
+1. 先用 assembler 將 `.asm` 組譯成 `.obj`
+2. 再編譯 `sicxe_loader.exe`
+3. 使用 loader 將 `.obj` 載入到指定起始位址
+4. 查看 loading map 與 memory dump
+
+以下以 `sum.asm` 為例。
+
+### 1. 產生 object file
+
+```powershell
+.\run.bat sum.asm
+```
+
+成功後會產生：
+
+```text
+sum.obj
+```
+
+也可以自行指定輸出檔名：
+
+```powershell
+.\run.bat sum.asm my_program.obj
+```
+
+### 2. 編譯 Linking Loader
+
+```powershell
+g++ -o sicxe_loader.exe loader_main.cpp linking_loader.cpp
+```
+
+### 3. 載入 object file
+
+```powershell
+.\sicxe_loader.exe --addr 4000 --map sum.map --mem sum.mem sum.obj
+```
+
+參數說明：
+
+- `--addr 4000`：載入起始位址，使用十六進位
+- `--map sum.map`：輸出 loading map
+- `--mem sum.mem`：輸出 memory dump
+- `sum.obj`：assembler 產生的 object file
+
+### 4. 查看輸出
+
+```powershell
+Get-Content sum.map
+Get-Content sum.mem
+```
+
+`sum.map` 會列出 control section、external symbols 與 execution address。
+
+`sum.mem` 會列出載入並重定位後的記憶體內容。
+
+### 一次跑完整流程
+
+```powershell
+.\run.bat sum.asm
+g++ -o sicxe_loader.exe loader_main.cpp linking_loader.cpp
+.\sicxe_loader.exe --addr 4000 --map sum.map --mem sum.mem sum.obj
+Get-Content sum.map
+Get-Content sum.mem
+```
+
+### SIC/XE 範例
+
+```powershell
+.\run.bat xe_test.asm
+g++ -o sicxe_loader.exe loader_main.cpp linking_loader.cpp
+.\sicxe_loader.exe --addr 4000 --map xe_test.map --mem xe_test.mem xe_test.obj
+Get-Content xe_test.map
+Get-Content xe_test.mem
+```
+
+### 載入多個 object files
+
+```powershell
+.\sicxe_loader.exe --addr 4000 --map program.map --mem program.mem main.obj sub.obj
+```
+
+loader 會依照命令列順序配置 control sections，後面的 object file 會接在前一個 control section 後面。
+
+### 執行 loader 測試
+
+```powershell
+.\run_loader_tests.bat
+```
+
+測試腳本會：
+
+- 編譯 `sicxe_loader.exe`
+- 執行成功案例
+- 比對 expected loading map 與 memory dump
+- 驗證 duplicate symbol 與 undefined symbol 等錯誤案例會失敗
+
+成功時會看到：
+
+```text
+[SUCCESS] Loader tests passed.
+```

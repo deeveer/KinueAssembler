@@ -1,14 +1,10 @@
 Address   Label     Mnemonic  Operand             
-0000      XETEST    START     0                   
-0000      FIRST     LDB       #100                
-0003                BASE      100                 
-0003                CLEAR     A                   
-0005                CLEAR     X                   
-0007      LOOP      ADD       #5                  
-000A                TIX       MAX                 
-000D                JLT       LOOP                
-0010                STA       TOTAL               
-0013                RSUB                          
-0016      MAX       WORD      50                  
-0019      TOTAL     RESW      1                   
-001C                END       FIRST               
+0000      SUM       START     0                   
+0000      FIRST     LDA       FIVE                
+0003                ADD       TEN                 
+0006                STA       RESULT              
+0009                RSUB                          
+000C      FIVE      WORD      5                   
+000F      TEN       WORD      10                  
+0012      RESULT    RESW      1                   
+0015                END       FIRST               
